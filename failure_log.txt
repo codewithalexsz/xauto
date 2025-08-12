@@ -1,0 +1,97 @@
+[2025-08-11 14:11:56] FAILURE: https://x.com/ogobiri_x/status/1954513396449104063 | Comment: 
+[2025-08-11 14:12:22] FAILURE: https://x.com/CryptoAMeeer/status/1954821019534794975 | Comment: FractionAI rewards user engagement and thoughts with FAPs.
+[2025-08-11 14:12:39] FAILURE: https://x.com/Mrklein4D/status/1954649154954891676 | Comment: Monad mainnet is anticipated by the community.
+[2025-08-11 14:13:39] FAILURE: https://x.com/vhowa/status/1954810136129626369 | Comment: 
+[2025-08-11 14:14:17] FAILURE: https://x.com/_kngmaxxi/status/1954814549510484278 | Comment: 
+[2025-08-11 14:14:35] FAILURE: https://x.com/bigbrvu1/status/1954822094635651136 | Comment: 
+[2025-08-11 14:15:32] FAILURE: https://x.com/melvinweb3chad/status/1954810691484885212 | Comment: 
+[2025-08-11 14:15:57] FAILURE: https://x.com/BensonRubby/status/1954799896822772036 | Comment: Recallnet keeps AI performance transparent by using the blockchain.
+[2025-08-11 14:16:37] FAILURE: https://x.com/mrConsistent88/status/1954786287598068028 | Comment: 
+[2025-08-11 14:17:36] FAILURE: https://x.com/abdulkadirhabe7/status/1954822574288101558 | Comment: 
+[2025-08-11 14:18:35] FAILURE: https://x.com/papamo1995d/status/1954685910886314074 | Comment: 
+[2025-08-11 14:19:35] FAILURE: https://x.com/rhyskaiaa/status/1954736850213679201 | Comment: 
+[2025-08-11 14:20:14] FAILURE: https://x.com/shadoocrypt0/status/1954823060952891490 | Comment: 
+[2025-08-11 14:20:38] FAILURE: https://x.com/Aniela_c4/status/1954811903332487219 | Comment: OpenledgerHQ warns against empty promises, usefulness is key.
+[2025-08-11 14:21:03] FAILURE: https://x.com/James_dominic39/status/1954813840572481937 | Comment: 0G Labs tokenomics is designed to reward active community members.
+[2025-08-11 14:21:31] FAILURE: https://x.com/Dominic69392508/status/1954818292058599794 | Comment: Lumiterra is a web3 game with player-owned assets.
+[2025-08-11 14:21:59] FAILURE: https://x.com/Godswill_hope2/status/1954822866962186374 | Comment: Crestal Network is an intelligent network for fluid DeFi liquidity.
+[2025-08-11 14:22:24] FAILURE: https://x.com/AdoBeelal11359/status/1954768773228962283 | Comment: BOB turns dormant Bitcoin into a "dynamic money machine".
+[2025-08-11 14:23:03] FAILURE: https://x.com/emmiyoung22/status/1954759219875332250 | Comment: 
+[2025-08-11 14:23:42] FAILURE: https://x.com/hemtee5/status/1954809775067169088 | Comment: 
+[2025-08-11 14:24:04] FAILURE: https://x.com/KIB_darktan242/status/1954812308774891782 | Comment: MorphLayer rewards activity and community engagement over speculation.
+[2025-08-11 14:24:32] FAILURE: https://x.com/KennydalglishRN/status/1954800639889859041 | Comment: AvailProject's Nexus SDK allows for seamless cross-chain apps.
+[2025-08-11 14:25:13] FAILURE: https://x.com/messiahsolana/status/1954803040529023212 | Comment: 
+[2025-08-11 14:25:42] FAILURE: https://x.com/Dropmonsters/status/1954627718009553159 | Comment: LABtrade is a multi-chain ecosystem for creative ideas.
+[2025-08-11 14:26:43] FAILURE: https://x.com/iamchrisdon1/status/1954815434542157978 | Comment: 
+[2025-08-11 14:27:24] FAILURE: https://x.com/jvstme_ophyxial/status/1954815840647270532 | Comment: 
+[2025-08-11 14:28:01] FAILURE: https://x.com/prodigydefi/status/1954815178643497260 | Comment: 
+[2025-08-11 14:28:26] FAILURE: https://x.com/OXEMMYWEB3/status/1954817945139294400 | Comment: DefiApp rewards consistent activity and growth in its ecosystem.
+[2025-08-11 14:28:52] FAILURE: https://x.com/Kiminino72/status/1954801013388374271 | Comment: GOAT Network offers sustainable BTC yield on a ZK Rollup.
+[2025-08-11 14:29:31] FAILURE: https://x.com/bt_ballerz/status/1954814562202460260 | Comment: 
+[2025-08-11 14:30:31] FAILURE: https://x.com/chorux666/status/1954813237788086758 | Comment: 
+[2025-08-11 14:30:54] FAILURE: https://x.com/OGIEZK/status/1954812341452739058 | Comment: Cysic_xyz uses ZK proofs for scalable and decentralized solutions.
+[2025-08-11 14:31:17] FAILURE: https://x.com/MekusCrypt/status/1954816735644635633 | Comment: Plume Network focuses on tokenized real-world assets (RWAfi).
+[2025-08-11 14:31:45] FAILURE: https://x.com/Jacobmcall008/status/1954815319983243613 | Comment: Hana Network promotes consistency for user growth.
+[2025-08-11 14:32:16] FAILURE: https://x.com/Ekinwa1/status/1954788548638335303 | Comment: Billions Network verifies AI with crypto for a safer internet.
+[2025-08-11 14:32:46] FAILURE: https://x.com/JOHNPRECIO54329/status/1954802355611832831 | Comment: Ostrich_HQ is a social trading platform for various markets.
+[2025-08-11 14:33:28] FAILURE: https://x.com/gpAwesome1/status/1954822583561412764 | Comment: 
+[2025-08-11 14:33:51] FAILURE: https://x.com/Nexxie02/status/1954800399858401676 | Comment: KaiaChain enables gas-free swaps and stablecoin integration.
+[2025-08-11 14:34:17] FAILURE: https://x.com/Jagunz_/status/1954781765047849155 | Comment: Irys provides proof of originality for digital content on-chain.
+[2025-08-11 14:34:44] FAILURE: https://x.com/AJesusemen/status/1954814382367560072 | Comment: Bitcoin is seen as a safe "treasure chest".
+[2025-08-11 14:35:42] FAILURE: https://x.com/danzo_hasashi/status/1954816161394446526 | Comment: 
+[2025-08-11 14:36:08] FAILURE: https://x.com/Stay_Crypt/status/1954817395887063444 | Comment: 
+[2025-08-11 14:36:50] FAILURE: https://x.com/Paul1997_/status/1946792853117587726 | Comment: 
+[2025-08-11 14:37:50] FAILURE: https://x.com/rvandeuli/status/1954779454405800200 | Comment: 
+[2025-08-11 14:38:10] FAILURE: https://x.com/Cant_catch_mea/status/1954821965757177973 | Comment: Limitless Exchange is a prediction market on Base blockchain.
+[2025-08-11 14:38:44] FAILURE: https://x.com/Eager_Beaver01/status/1954800806080688453 | Comment: JoinSapien redefines social networking with privacy and community.
+[2025-08-11 14:39:42] FAILURE: https://x.com/one_bllacko/status/1954812816042713581 | Comment: 
+[2025-08-11 14:40:07] FAILURE: https://x.com/Momodudestiny3/status/1954791663378772181 | Comment: GAIB enables on-chain capital for AI infrastructure.
+[2025-08-11 14:40:46] FAILURE: https://x.com/big20_op/status/1954807943787872750 | Comment: 
+[2025-08-11 14:41:43] FAILURE: https://x.com/sparrow_701/status/1954803771873382585 | Comment: 
+[2025-08-11 14:42:25] FAILURE: https://x.com/david_freedom1/status/1954348793756827682 | Comment: 
+[2025-08-11 14:42:51] FAILURE: https://x.com/NChiloham/status/1954805308242493761 | Comment: LightLinkChain offers sub-second transaction settlements.
+[2025-08-11 14:43:51] FAILURE: https://x.com/keikixbt/status/1954817600048762884 | Comment: 
+[2025-08-11 14:44:53] FAILURE: https://x.com/spotlight0nX/status/1954727824717205558 | Comment: 
+[2025-08-11 14:47:02] FAILURE: https://x.com/yungmooch001/status/1954815470504128627 | Comment: 
+[2025-08-11 14:47:33] FAILURE: https://x.com/CHUKWUDUBEM8680/status/1954815760041185689 | Comment: Mira Network makes AI trustworthy through decentralized verification.
+[2025-08-11 14:48:01] FAILURE: https://x.com/ST0NER9K/status/1953716930491084813 | Comment: 
+[2025-08-11 14:49:02] FAILURE: https://x.com/RichardCrown28/status/1954798579446333565 | Comment: 
+[2025-08-11 14:50:05] FAILURE: https://x.com/PEROR250/status/1954682571951882524 | Comment: 
+[2025-08-11 14:50:45] FAILURE: https://x.com/ademola37791000/status/1954815207886163997 | Comment: 
+[2025-08-11 14:51:46] FAILURE: https://x.com/samigrandxyz/status/1954157322147622913 | Comment: 
+[2025-08-11 14:52:44] FAILURE: https://x.com/harlahdhe001/status/1954818397683765299 | Comment: 
+[2025-08-11 14:53:12] FAILURE: https://x.com/Bigmacdave01/status/1954805820098523500 | Comment: Union uses ZK interoperability for seamless cross-chain transactions.
+[2025-08-11 14:53:51] FAILURE: https://x.com/On94232Onwuka/status/1954822883022192736 | Comment: 
+[2025-08-11 14:54:30] FAILURE: https://x.com/hadex2jr00/status/1954821129400397905 | Comment: 
+[2025-08-11 14:54:49] FAILURE: https://x.com/crypto_emmyer7/status/1954731425548116404 | Comment: 
+[2025-08-11 14:55:28] FAILURE: https://x.com/benoknft/status/1954819026250862816 | Comment: 
+[2025-08-11 14:56:08] FAILURE: https://x.com/quantaerx/status/1954813204632125663 | Comment: 
+[2025-08-11 14:56:48] FAILURE: https://x.com/SolTheGr8/status/1954795201899159782 | Comment: 
+[2025-08-11 14:57:27] FAILURE: https://x.com/Romeosin10/status/1954623106963980542 | Comment: 
+[2025-08-11 14:57:45] FAILURE: https://x.com/phayvor_onX/status/1954773515447489002 | Comment: 
+[2025-08-11 14:58:48] FAILURE: https://x.com/dremocryptonite/status/1954822213330149683 | Comment: 
+[2025-08-11 14:59:29] FAILURE: https://x.com/fatuaseolanrew2/status/1954552295791681660 | Comment: 
+[2025-08-11 14:59:55] FAILURE: https://x.com/Chunny1629967/status/1954823456052138022 | Comment: PBM is a token with strong team and meme potential.
+[2025-08-11 15:00:25] FAILURE: https://x.com/I_mnonso/status/1954694270679461976 | Comment: Warden Protocol connects AI and blockchain with statistical proof.
+[2025-08-11 15:01:25] FAILURE: https://x.com/papamo1995d/status/1954817728604155990 | Comment: 
+[2025-08-11 15:01:50] FAILURE: https://x.com/Counselor_Ayo/status/1954813755474227632 | Comment: Elympics Gameplay SDK offers features for competitive gaming.
+[2025-08-11 15:02:54] FAILURE: https://x.com/knickcharles05/status/1954816844348510272 | Comment: 
+[2025-08-11 15:03:52] FAILURE: https://x.com/Realprincedanil/status/1954816406580531438 | Comment: 
+[2025-08-11 15:04:31] FAILURE: https://x.com/Okeoluwagbemig1/status/1954268980509540426 | Comment: 
+[2025-08-11 15:04:51] FAILURE: https://x.com/IsraelDeGreat/status/1954811707039060430 | Comment: Vooi V2 offers non-custodial, gas-free, cross-chain trading.
+[2025-08-11 15:05:30] FAILURE: https://x.com/PROSPERDEGREAT/status/1954820091175903365 | Comment: 
+[2025-08-11 15:05:58] FAILURE: https://x.com/Fotex_Hub/status/1954798867544711617 | Comment: Almanak is a financial tool with points, rewards, and referrals.
+[2025-08-11 15:06:58] FAILURE: https://x.com/O_omololami/status/1954820222013022628 | Comment: 
+[2025-08-11 15:07:22] FAILURE: https://x.com/Air_007droper/status/1954814095359717854 | Comment: Film funding is entering a new era with FFG.
+[2025-08-11 15:07:45] FAILURE: https://x.com/BigNelson_/status/1954814039961330007 | Comment: YEET is a verifiable, on-chain casino with good odds.
+[2025-08-11 15:08:47] FAILURE: https://x.com/paul_saint01/status/1954804270017941830 | Comment: 
+[2025-08-11 15:09:11] FAILURE: https://x.com/Mikel1I/status/1954800618943471917 | Comment: Anoma is an "intent-centric" protocol for Web3 applications.
+[2025-08-11 15:09:35] FAILURE: https://x.com/Furicrypts/status/1954802250271842704 | Comment: TEN Protocol offers fast, low-cost, and secure Web3 transactions.
+[2025-08-11 15:10:13] FAILURE: https://x.com/fmjiggy/status/1954796670673150217 | Comment: 
+[2025-08-11 15:10:39] FAILURE: https://x.com/MaryJustin76622/status/1954802240989876662 | Comment: Momentum Finance is a DEX on Sui with active liquidity.
+[2025-08-11 15:11:38] FAILURE: https://x.com/_Professor_xXx/status/1954794224924111270 | Comment: 
+[2025-08-11 15:12:17] FAILURE: https://x.com/wizzybtc003/status/1954799961138196720 | Comment: 
+[2025-08-11 15:12:48] FAILURE: https://x.com/Danny__of__web3/status/1954822649491653038 | Comment: Billions Network meets funding goal, but questions remain.
+[2025-08-11 15:13:46] FAILURE: https://x.com/TheVarian_t/status/1954809178767192403 | Comment: 
+[2025-08-12 02:49:50] FAILURE: https://x.com/israeldegreat/status/1954505683333734896 | Comment: love LAB btw
+[2025-08-12 02:54:26] FAILURE: https://x.com/israeldegreat/status/1954505683333734896 | Comment: cool

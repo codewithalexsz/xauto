@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  twitter-automation:
+    build: .
+    container_name: twitter-automation
+    volumes:
+      # Persist profiles and data
+      - ./app:/app/app
+      - ./chrome-data:/app/chrome-data
+      - ./logs:/app/logs
+      - ./scraped_tweets.txt:/app/scraped_tweets.txt
+      - ./success_log.txt:/app/success_log.txt
+      - ./failure_log.txt:/app/failure_log.txt
+      # Mount tweet links file
+      - ./tweet_links.txt:/app/tweet_links.txt:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    # Run in detached mode
+    tty: true
+    stdin_open: true

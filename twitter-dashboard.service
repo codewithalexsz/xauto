@@ -1,0 +1,15 @@
+[Unit]
+Description=Twitter Automation Web Dashboard
+After=network.target
+
+[Service]
+Type=simple
+User=twitterbot
+WorkingDirectory=/path/to/twitter-automation
+ExecStart=/path/to/twitter-automation/venv/bin/python /path/to/twitter-automation/web_dashboard.py --host 0.0.0.0 --port 5000
+Restart=on-failure
+RestartSec=5
+Environment=FLASK_ENV=production
+
+[Install]
+WantedBy=multi-user.target

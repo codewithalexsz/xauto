@@ -1,0 +1,141 @@
+<!-- VNC Configuration Modal -->
+<div class="modal fade" id="vncConfigModal" tabindex="-1" role="dialog" aria-labelledby="vncConfigModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="vncConfigModalLabel">VNC Configuration</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- VNC Mode Toggle -->
+                <div class="form-group">
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="useGuiChrome">
+                        <label class="custom-control-label" for="useGuiChrome">Use GUI Chrome via VNC</label>
+                    </div>
+                    <small class="form-text text-muted">Enable to use Chrome in GUI mode via VNC for manual login and visual feedback.</small>
+                </div>
+
+                <!-- VNC Display -->
+                <div class="form-group">
+                    <label for="vncDisplay">VNC Display</label>
+                    <input type="text" class="form-control" id="vncDisplay" value=":1">
+                    <small class="form-text text-muted">The VNC display number (e.g., :1)</small>
+                </div>
+
+                <!-- Chrome Profile Directory -->
+                <div class="form-group">
+                    <label for="chromeProfileDir">Chrome Profile Directory</label>
+                    <input type="text" class="form-control" id="chromeProfileDir" value="~/.config/chrome_profiles">
+                    <small class="form-text text-muted">Directory where Chrome profiles are stored</small>
+                </div>
+
+                <!-- ChromeDriver Path -->
+                <div class="form-group">
+                    <label for="chromedriverPath">ChromeDriver Path</label>
+                    <input type="text" class="form-control" id="chromedriverPath" value="/usr/local/bin/chromedriver">
+                    <small class="form-text text-muted">Path to the ChromeDriver executable</small>
+                </div>
+
+                <!-- VNC Status -->
+                <div class="alert alert-info" role="alert" id="vncStatus">
+                    Checking VNC status...
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveVncConfig()">Save Changes</button>
+                <button type="button" class="btn btn-info" onclick="checkVncStatus()">Check VNC Status</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add this to your existing JavaScript -->
+<script>
+// Load VNC configuration
+function loadVncConfig() {
+    fetch('/api/config/vnc')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('useGuiChrome').checked = data.config.use_gui_chrome;
+                document.getElementById('vncDisplay').value = data.config.vnc_display;
+                document.getElementById('chromeProfileDir').value = data.config.chrome_profile_dir;
+                document.getElementById('chromedriverPath').value = data.config.chromedriver_path || '';
+                checkVncStatus();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading VNC config:', error);
+            showToast('error', 'Failed to load VNC configuration');
+        });
+}
+
+// Save VNC configuration
+function saveVncConfig() {
+    const config = {
+        use_gui_chrome: document.getElementById('useGuiChrome').checked,
+        vnc_display: document.getElementById('vncDisplay').value,
+        chrome_profile_dir: document.getElementById('chromeProfileDir').value,
+        chromedriver_path: document.getElementById('chromedriverPath').value
+    };
+
+    fetch('/api/config/vnc', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(config)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('success', 'VNC configuration saved');
+            $('#vncConfigModal').modal('hide');
+        } else {
+            showToast('error', data.error || 'Failed to save VNC configuration');
+        }
+    })
+    .catch(error => {
+        console.error('Error saving VNC config:', error);
+        showToast('error', 'Failed to save VNC configuration');
+    });
+}
+
+// Check VNC status
+function checkVncStatus() {
+    const statusDiv = document.getElementById('vncStatus');
+    statusDiv.innerHTML = 'Checking VNC status...';
+    statusDiv.className = 'alert alert-info';
+
+    fetch('/api/config/vnc/status')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.vnc_running) {
+                    statusDiv.innerHTML = '✅ VNC server is running and environment is properly configured';
+                    statusDiv.className = 'alert alert-success';
+                } else {
+                    statusDiv.innerHTML = `⚠️ VNC issue detected: ${data.error}`;
+                    statusDiv.className = 'alert alert-warning';
+                }
+            } else {
+                statusDiv.innerHTML = `❌ Error checking VNC status: ${data.error}`;
+                statusDiv.className = 'alert alert-danger';
+            }
+        })
+        .catch(error => {
+            console.error('Error checking VNC status:', error);
+            statusDiv.innerHTML = '❌ Failed to check VNC status';
+            statusDiv.className = 'alert alert-danger';
+        });
+}
+
+// Load VNC config when modal opens
+$('#vncConfigModal').on('show.bs.modal', function (e) {
+    loadVncConfig();
+});
+</script>

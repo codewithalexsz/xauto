@@ -1,0 +1,15 @@
+[Unit]
+Description=VNC Server for Twitter Automation
+After=network.target
+
+[Service]
+Type=forking
+User=alex
+WorkingDirectory=/home/alex/x
+ExecStart=/usr/bin/vncserver :1 -geometry 1920x1080 -depth 24
+ExecStop=/usr/bin/vncserver -kill :1
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,14 @@
+[Unit]
+Description=Twitter Automation Service
+After=network.target
+
+[Service]
+Type=simple
+User=alex
+WorkingDirectory=/home/alex/x
+ExecStart=/home/alex/x/venv/bin/python /home/alex/x/cli_version.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

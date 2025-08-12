@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitter Automation Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <style>
+        .log-container {
+            height: 300px;
+            overflow-y: auto;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .task-card {
+            margin-bottom: 15px;
+        }
+        .system-status {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .status-running { background-color: #28a745; }
+        .status-completed { background-color: #007bff; }
+        .status-error { background-color: #dc3545; }
+        .status-cancelled { background-color: #6c757d; }
+        .vnc-status {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .vnc-status.disconnected {
+            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+        }
+        .settings-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                    <div class="container-fluid">
+                        <a class="navbar-brand" href="#">
+                            <i class="fab fa-twitter"></i> Twitter Automation Dashboard
+                        </a>
+                        <div class="navbar-nav ms-auto">
+                            <span class="navbar-text">
+                                <i class="fas fa-circle text-success"></i> Connected
+                            </span>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+
+        <!-- VNC Status -->
+        <div class="row mt-3" id="vncStatusRow" style="display: none;">
+            <div class="col-12">
+                <div class="vnc-status" id="vncStatus">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-desktop"></i> VNC Status</h6>
+                            <div id="vncStatusText">Checking VNC status...</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-light" onclick="checkVNCStatus()">
+                                    <i class="fas fa-sync-alt"></i> Refresh
+                                </button>
+                                <button class="btn btn-sm btn-light" onclick="startVNC()" id="startVNCBtn" style="display: none;">
+                                    <i class="fas fa-play"></i> Start VNC
+                                </button>
+                                <button class="btn btn-sm btn-light" onclick="stopVNC()" id="stopVNCBtn" style="display: none;">
+                                    <i class="fas fa-stop"></i> Stop VNC
+                                </button>
+                                <button class="btn btn-sm btn-light" onclick="cleanupVNC()" id="cleanupVNCBtn">
+                                    <i class="fas fa-broom"></i> Cleanup
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Status -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="system-status">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <h6><i class="fas fa-microchip"></i> CPU Usage</h6>
+                            <div class="progress">
+                                <div id="cpu-progress" class="progress-bar" role="progressbar" style="width: 0%">0%</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <h6><i class="fas fa-memory"></i> Memory Usage</h6>
+                            <div class="progress">
+                                <div id="memory-progress" class="progress-bar" role="progressbar" style="width: 0%">0%</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <h6><i class="fas fa-hdd"></i> Disk Usage</h6>
+                            <div class="progress">
+                                <div id="disk-progress" class="progress-bar" role="progressbar" style="width: 0%">0%</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <h6><i class="fas fa-clock"></i> Uptime</h6>
+                            <div id="uptime">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="row">
+            <div class="col-12">
+                <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="profiles-tab" data-bs-toggle="tab" data-bs-target="#profiles" type="button" role="tab">
+                            <i class="fas fa-users"></i> Profiles
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="scraping-tab" data-bs-toggle="tab" data-bs-target="#scraping" type="button" role="tab">
+                            <i class="fas fa-download"></i> Scraping
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="automation-tab" data-bs-toggle="tab" data-bs-target="#automation" type="button" role="tab">
+                            <i class="fas fa-robot"></i> Automation
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" type="button" role="tab">
+                            <i class="fas fa-tasks"></i> Tasks
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="files-tab" data-bs-toggle="tab" data-bs-target="#files" type="button" role="tab">
+                            <i class="fas fa-file-alt"></i> Files
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tools-tab" data-bs-toggle="tab" data-bs-target="#tools" type="button" role="tab">
+                            <i class="fas fa-tools"></i> Tools
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="vnc-tab" data-bs-toggle="tab" data-bs-target="#vnc" type="button" role="tab">
+                            <i class="fas fa-desktop"></i> VNC
+                        </button>
+                    </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">
+                                <i class="fas fa-cog"></i> Settings
+                            </button>
+                        </li>
+                </ul>
+
+                <div class="tab-content" id="mainTabsContent">
+                    <!-- Profiles Tab -->
+                    <div class="tab-pane fade show active" id="profiles" role="tabpanel">
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-plus"></i> Create New Profile</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="input-group mb-3">
+                                            <input type="text" class="form-control" id="newProfileName" placeholder="Enter profile name">
+                                            <button class="btn btn-primary" type="button" onclick="createProfile()">
+                                                <i class="fas fa-plus"></i> Create
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-list"></i> Saved Profiles</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="profilesList">
+                                            <div class="text-center text-muted">
+                                                <i class="fas fa-spinner fa-spin"></i> Loading profiles...
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Scraping Tab -->
+                    <div class="tab-pane fade" id="scraping" role="tabpanel">
+                        <div class="row mt-3">
+                            <div class="col-md-8">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-download"></i> Tweet Scraping</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="scrapeProfile" class="form-label">Select Profile</label>
+                                            <select class="form-select" id="scrapeProfile">
+                                                <option value="">Choose a profile...</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="tweetLinks" class="form-label">Tweet Links (one per line)</label>
+                                            <textarea class="form-control" id="tweetLinks" rows="8" placeholder="https://twitter.com/username/status/123456789&#10;https://twitter.com/username/status/987654321"></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="scrapingRetries" class="form-label">Max Retries</label>
+                                            <input type="number" class="form-control" id="scrapingRetries" value="3" min="1" max="10">
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-primary" onclick="startScraping()" id="startScrapingBtn">
+                                                <i class="fas fa-play"></i> Start Scraping
+                                            </button>
+                                            <button class="btn btn-danger" onclick="stopScraping()" id="stopScrapingBtn" style="display: none;">
+                                                <i class="fas fa-stop"></i> Stop Scraping
+                                            </button>
+                                            <button class="btn btn-secondary" onclick="loadSampleLinks()">
+                                                <i class="fas fa-file-import"></i> Load Sample
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-chart-line"></i> Scraping Progress</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="scrapingProgress" style="display: none;">
+                                            <div class="progress mb-3">
+                                                <div id="scrapingProgressBar" class="progress-bar" role="progressbar" style="width: 0%">0%</div>
+                                            </div>
+                                            <div id="scrapingStatus" class="text-muted">Ready to start...</div>
+                                        </div>
+                                        <div id="scrapingLog" class="log-container" style="display: none;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Automation Tab -->
+                    <div class="tab-pane fade" id="automation" role="tabpanel">
+                        <div class="row mt-3">
+                            <div class="col-md-8">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-robot"></i> Twitter Automation</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="automationProfile" class="form-label">Select Profile</label>
+                                            <select class="form-select" id="automationProfile">
+                                                <option value="">Choose a profile...</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="automationTweetLinks" class="form-label">Tweet Links (one per line)</label>
+                                            <textarea class="form-control" id="automationTweetLinks" rows="6" placeholder="https://twitter.com/username/status/123456789&#10;https://twitter.com/username/status/987654321"></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="replyComments" class="form-label">Reply Comments (one per line, matching tweet order)</label>
+                                            <textarea class="form-control" id="replyComments" rows="4" placeholder="Great post!&#10;Thanks for sharing!"></textarea>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="card">
+                                                    <div class="card-header">
+                                                        <h6><i class="fas fa-cogs"></i> Actions</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="actionLike" checked>
+                                                            <label class="form-check-label" for="actionLike">
+                                                                <i class="fas fa-heart text-danger"></i> Like
+                                                            </label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="actionRetweet">
+                                                            <label class="form-check-label" for="actionRetweet">
+                                                                <i class="fas fa-retweet text-primary"></i> Retweet
+                                                            </label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="actionReply">
+                                                            <label class="form-check-label" for="actionReply">
+                                                                <i class="fas fa-reply text-success"></i> Reply
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="card">
+                                                    <div class="card-header">
+                                                        <h6><i class="fas fa-clock"></i> Timing Settings</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="mb-3">
+                                                            <label for="minWait" class="form-label">Min Wait (seconds)</label>
+                                                            <input type="number" class="form-control" id="minWait" value="5" min="1" max="60">
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label for="maxWait" class="form-label">Max Wait (seconds)</label>
+                                                            <input type="number" class="form-control" id="maxWait" value="15" min="1" max="120">
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label for="automationRetries" class="form-label">Max Retries</label>
+                                                            <input type="number" class="form-control" id="automationRetries" value="3" min="1" max="10">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="d-flex gap-2 mt-3">
+                                            <button class="btn btn-success" onclick="startAutomation()" id="startAutomationBtn">
+                                                <i class="fas fa-play"></i> Start Automation
+                                            </button>
+                                            <button class="btn btn-danger" onclick="stopAutomation()" id="stopAutomationBtn" style="display: none;">
+                                                <i class="fas fa-stop"></i> Stop Automation
+                                            </button>
+                                            <button class="btn btn-secondary" onclick="loadSampleAutomation()">
+                                                <i class="fas fa-file-import"></i> Load Sample
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-chart-line"></i> Automation Progress</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="automationProgress" style="display: none;">
+                                            <div class="progress mb-3">
+                                                <div id="automationProgressBar" class="progress-bar" role="progressbar" style="width: 0%">0%</div>
+                                            </div>
+                                            <div id="automationStatus" class="text-muted">Ready to start...</div>
+                                        </div>
+                                        <div id="automationLog" class="log-container" style="display: none;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tasks Tab -->
+                    <div class="tab-pane fade" id="tasks" role="tabpanel">
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h5><i class="fas fa-tasks"></i> Active Tasks</h5>
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="refreshTasks()">
+                                            <i class="fas fa-sync-alt"></i> Refresh
+                                        </button>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="tasksList">
+                                            <div class="text-center text-muted">
+                                                <i class="fas fa-spinner fa-spin"></i> Loading tasks...
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Files Tab -->
+                    <div class="tab-pane fade" id="files" role="tabpanel">
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-file-alt"></i> Scraped Tweets</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="scrapedTweetsContent">
+                                            <div class="text-center text-muted">
+                                                <i class="fas fa-spinner fa-spin"></i> Loading content...
+                                            </div>
+                                        </div>
+                                        <div class="mt-3">
+                                            <button class="btn btn-primary" onclick="downloadFile('scraped_tweets.txt')">
+                                                <i class="fas fa-download"></i> Download
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-file-download"></i> Available Files</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="list-group">
+                                            <a href="#" class="list-group-item list-group-item-action" onclick="downloadFile('scraped_tweets.txt')">
+                                                <i class="fas fa-file-text"></i> scraped_tweets.txt
+                                            </a>
+                                            <a href="#" class="list-group-item list-group-item-action" onclick="downloadFile('success_log.txt')">
+                                                <i class="fas fa-file-check"></i> success_log.txt
+                                            </a>
+                                            <a href="#" class="list-group-item list-group-item-action" onclick="downloadFile('failure_log.txt')">
+                                                <i class="fas fa-file-times"></i> failure_log.txt
+                                            </a>
+                                            <a href="#" class="list-group-item list-group-item-action" onclick="downloadFile('strippedlinks.txt')">
+                                                <i class="fas fa-link"></i> strippedlinks.txt
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tools Tab -->
+                    <div class="tab-pane fade" id="tools" role="tabpanel">
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-link"></i> Link Extraction Tool</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="linkInput" class="form-label">Enter text containing tweet links:</label>
+                                            <textarea class="form-control" id="linkInput" rows="5" placeholder="Paste text here..."></textarea>
+                                        </div>
+                                        <button class="btn btn-primary" onclick="extractLinks()">
+                                            <i class="fas fa-link"></i> Extract Links
+                                        </button>
+                                        <div class="mt-3">
+                                            <h6>Extracted Links:</h6>
+                                            <div id="extractedLinks" class="list-group">
+                                                <div class="list-group-item">
+                                                    <i class="fas fa-spinner fa-spin"></i> Loading links...
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- VNC Tab -->
+        <div class="tab-pane fade" id="vnc" role="tabpanel">
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-desktop"></i> VNC Server Management</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="vnc-status-card mb-3">
+                                        <h6><i class="fas fa-info-circle"></i> VNC Status</h6>
+                                        <div id="vncTabStatus">Checking status...</div>
+                                        <button class="btn btn-sm btn-outline-primary mt-2" onclick="checkVNCStatusTab()">
+                                            <i class="fas fa-sync-alt"></i> Refresh Status
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="vnc-controls-card">
+                                        <h6><i class="fas fa-play-circle"></i> VNC Controls</h6>
+                                        <div class="d-grid gap-2">
+                                            <button class="btn btn-success" onclick="startVNCTab()" id="startVNCTabBtn">
+                                                <i class="fas fa-play"></i> Start VNC Server
+                                            </button>
+                                            <button class="btn btn-warning" onclick="stopVNCTab()" id="stopVNCTabBtn" style="display: none;">
+                                                <i class="fas fa-stop"></i> Stop VNC Server
+                                            </button>
+                                            <button class="btn btn-danger" onclick="cleanupVNCTab()" id="cleanupVNCTabBtn">
+                                                <i class="fas fa-trash"></i> Stop & Cleanup All VNC
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6><i class="fas fa-info-circle"></i> How to Connect to VNC</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <h6><i class="fab fa-windows"></i> Windows</h6>
+                                                    <ol>
+                                                        <li>Download <a href="https://www.tightvnc.com/download.php" target="_blank">TightVNC Viewer</a></li>
+                                                        <li>Install and run TightVNC Viewer</li>
+                                                        <li>Enter: <code id="vncServerAddress">Loading...</code></li>
+                                                        <li>Click Connect</li>
+                                                        <li>Enter your VNC password</li>
+                                                    </ol>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <h6><i class="fab fa-linux"></i> Linux</h6>
+                                                    <ol>
+                                                        <li>Install: <code>sudo apt install tigervnc-viewer</code></li>
+                                                        <li>Run: <code id="vncLinuxCommand">vncviewer Loading...</code></li>
+                                                        <li>Enter your VNC password</li>
+                                                    </ol>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <h6><i class="fab fa-apple"></i> macOS</h6>
+                                                    <ol>
+                                                        <li>Open Screen Sharing app</li>
+                                                        <li>Enter: <code id="vncMacUrl">vnc://Loading...</code></li>
+                                                        <li>Enter your VNC password</li>
+                                                    </ol>
+                                                </div>
+                                            </div>
+                                            <div class="alert alert-info mt-3">
+                                                <strong>Note:</strong> Once connected to VNC, you can launch Chrome from the Profiles tab and see it in the VNC window.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div class="tab-pane fade" id="settings" role="tabpanel">
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-desktop"></i> VNC Settings</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="useGuiChrome">
+                                                <label class="form-check-label" for="useGuiChrome">
+                                                    Use GUI Chrome via VNC
+                                                </label>
+                                            </div>
+                                            <small class="form-text text-muted">Enable to use Chrome with GUI support via VNC</small>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="vncDisplay" class="form-label">VNC Display</label>
+                                            <input type="text" class="form-control" id="vncDisplay" value=":1">
+                                            <small class="form-text text-muted">VNC display number (e.g., :1)</small>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="chromeProfileDir" class="form-label">Chrome Profile Directory</label>
+                                            <input type="text" class="form-control" id="chromeProfileDir" value="chrome-data">
+                                            <small class="form-text text-muted">Directory for Chrome profiles</small>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="chromedriverPath" class="form-label">ChromeDriver Path</label>
+                                            <input type="text" class="form-control" id="chromedriverPath" value="/usr/local/bin/chromedriver">
+                                            <small class="form-text text-muted">Path to ChromeDriver executable</small>
+                                        </div>
+                                        <button class="btn btn-primary" onclick="saveVNCSettings()">
+                                            <i class="fas fa-save"></i> Save VNC Settings
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-info-circle"></i> System Information</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <strong>Operating System:</strong>
+                                            <div id="osInfo">Loading...</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <strong>Python Version:</strong>
+                                            <div id="pythonVersion">Loading...</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <strong>Chrome Version:</strong>
+                                            <div id="chromeVersion">Loading...</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <strong>ChromeDriver Version:</strong>
+                                            <div id="chromedriverVersion">Loading...</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <strong>VNC Status:</strong>
+                                            <div id="vncStatusInfo">Loading...</div>
+                                        </div>
+                                        <button class="btn btn-secondary" onclick="refreshSystemInfo()">
+                                            <i class="fas fa-sync-alt"></i> Refresh
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Initialize Socket.IO
+        const socket = io();
+        let currentScrapingTask = null;
+        let currentAutomationTask = null;
+
+        // Socket.IO event handlers
+        socket.on('connect', function() {
+            console.log('Connected to server');
+            loadProfiles();
+            loadSystemStatus();
+            loadScrapedTweets();
+            refreshTasks();
+            checkVNCStatus();
+            checkVNCStatusTab();
+            loadVNCSettings();
+            loadSystemInfo();
+            loadExistingTasks(); // Load existing tasks on page load
+            loadVNCInfo(); // Load VNC connection information
+            loadExtractedLinks(); // Load existing extracted links on page load
+            
+            // Auto-refresh VNC status every 10 seconds
+            setInterval(checkVNCStatusTab, 10000);
+        });
+
+        socket.on('disconnect', function() {
+            console.log('Disconnected from server');
+        });
+
+        // Load profiles
+        function loadProfiles() {
+            fetch('/api/profiles')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateProfilesList(data.profiles);
+                        updateProfileSelects(data.profiles);
+                    } else {
+                        showAlert('Error loading profiles: ' + data.error, 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('Error loading profiles', 'danger');
+                });
+        }
+
+        function updateProfilesList(profiles) {
+            const container = document.getElementById('profilesList');
+            if (profiles.length === 0) {
+                container.innerHTML = '<div class="text-center text-muted">No profiles found</div>';
+                return;
+            }
+
+            container.innerHTML = profiles.map(profile => `
+                <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                    <div>
+                        <strong>${profile}</strong>
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="launchProfileBrowser('${profile}')">
+                            <i class="fas fa-external-link-alt"></i> Launch
+                        </button>
+                        <button class="btn btn-sm btn-outline-info me-1" onclick="checkProfileStatus('${profile}')">
+                            <i class="fas fa-info-circle"></i> Status
+                        </button>
+                        <button class="btn btn-sm btn-outline-success me-1" onclick="reattachProfile('${profile}')">
+                            <i class="fas fa-link"></i> Reattach
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning me-1" onclick="stopProfile('${profile}')">
+                            <i class="fas fa-stop"></i> Stop
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteProfile('${profile}')">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateProfileSelects(profiles) {
+            const selects = ['scrapeProfile', 'automationProfile'];
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                select.innerHTML = '<option value="">Choose a profile...</option>';
+                profiles.forEach(profile => {
+                    const option = document.createElement('option');
+                    option.value = profile;
+                    option.textContent = profile;
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        // Create profile
+        function createProfile() {
+            const profileName = document.getElementById('newProfileName').value.trim();
+            if (!profileName) {
+                showAlert('Please enter a profile name', 'warning');
+                return;
+            }
+
+            fetch('/api/profiles', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ profile_name: profileName })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    document.getElementById('newProfileName').value = '';
+                    loadProfiles();
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error creating profile', 'danger');
+            });
+        }
+
+        // Launch profile browser
+        function launchProfileBrowser(profileName) {
+            fetch(`/api/profiles/${profileName}/launch`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(`Browser launched for profile '${profileName}'`, 'success');
+                } else {
+                    showAlert('Error launching browser: ' + data.error, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error launching browser', 'danger');
+            });
+        }
+        
+        // Delete profile
+        function deleteProfile(profileName) {
+            if (!confirm(`Are you sure you want to delete profile "${profileName}"?`)) {
+                return;
+            }
+
+            fetch(`/api/profiles/${profileName}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    loadProfiles();
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error deleting profile', 'danger');
+            });
+        }
+
+        // VNC Functions
+        function checkVNCStatus() {
+            fetch('/api/config/vnc/status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateVNCStatus(data.vnc_running, data.error);
+                    } else {
+                        updateVNCStatus(false, data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking VNC status:', error);
+                    updateVNCStatus(false, 'Error checking VNC status');
+                });
+        }
+
+        function loadVNCInfo() {
+            fetch('/api/system/vnc-info')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateVNCConnectionInfo(data);
+                    } else {
+                        console.error('Error loading VNC info:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading VNC info:', error);
+                });
+        }
+
+        function updateVNCConnectionInfo(vncInfo) {
+            // Update VNC server address
+            const serverAddress = document.getElementById('vncServerAddress');
+            const linuxCommand = document.getElementById('vncLinuxCommand');
+            const macUrl = document.getElementById('vncMacUrl');
+            
+            if (serverAddress) {
+                serverAddress.textContent = vncInfo.vnc_address;
+            }
+            if (linuxCommand) {
+                linuxCommand.textContent = `vncviewer ${vncInfo.vnc_address}`;
+            }
+            if (macUrl) {
+                macUrl.textContent = vncInfo.vnc_url;
+            }
+            
+            // Update VNC status display with IP
+            const vncStatusText = document.getElementById('vncStatusText');
+            if (vncStatusText && vncInfo.vnc_running) {
+                vncStatusText.innerHTML = `<i class="fas fa-check-circle"></i> VNC server is running on ${vncInfo.vnc_address}`;
+            }
+        }
+
+        function updateVNCStatus(vncRunning, error) {
+            const vncStatusRow = document.getElementById('vncStatusRow');
+            const vncStatus = document.getElementById('vncStatus');
+            const vncStatusText = document.getElementById('vncStatusText');
+            const startVNCBtn = document.getElementById('startVNCBtn');
+            const stopVNCBtn = document.getElementById('stopVNCBtn');
+
+            vncStatusRow.style.display = 'block';
+
+            if (vncRunning) {
+                vncStatus.className = 'vnc-status';
+                vncStatusText.innerHTML = '<i class="fas fa-check-circle"></i> VNC server is running';
+                startVNCBtn.style.display = 'none';
+                stopVNCBtn.style.display = 'inline-block';
+            } else {
+                vncStatus.className = 'vnc-status disconnected';
+                vncStatusText.innerHTML = `<i class="fas fa-times-circle"></i> VNC server is not running${error ? ': ' + error : ''}`;
+                startVNCBtn.style.display = 'inline-block';
+                stopVNCBtn.style.display = 'none';
+            }
+        }
+
+        function startVNC() {
+            showAlert('Starting VNC server...', 'info');
+            fetch('/api/vnc/start', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('VNC server started successfully', 'success');
+                    setTimeout(() => {
+                        checkVNCStatus();
+                        loadVNCInfo(); // Refresh VNC connection info
+                    }, 2000);
+                } else {
+                    showAlert('Error starting VNC server: ' + data.error, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error starting VNC server', 'danger');
+            });
+        }
+
+        function stopVNC() {
+            showAlert('Stopping VNC server...', 'info');
+            fetch('/api/vnc/stop', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('VNC server stopped successfully', 'success');
+                    setTimeout(() => {
+                        checkVNCStatus();
+                    }, 2000);
+                } else {
+                    showAlert('Error stopping VNC server: ' + data.error, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error stopping VNC server', 'danger');
+            });
+        }
+
+        function cleanupVNC() {
+            showAlert('Cleaning up VNC processes...', 'info');
+            fetch('/api/vnc/cleanup', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('VNC cleanup completed: ' + data.message, 'success');
+                    setTimeout(() => {
+                        checkVNCStatus();
+                    }, 2000);
+                } else {
+                    showAlert('Error cleaning up VNC: ' + data.error, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error cleaning up VNC processes', 'danger');
+            });
+        }
+
+        // VNC Tab Functions
+        function checkVNCStatusTab() {
+            fetch('/api/config/vnc/status')
+                .then(response => response.json())
+                .then(data => {
+                    const statusDiv = document.getElementById('vncTabStatus');
+                    const startBtn = document.getElementById('startVNCTabBtn');
+                    const stopBtn = document.getElementById('stopVNCTabBtn');
+                    
+                    if (data.success) {
+                        if (data.vnc_running) {
+                            statusDiv.innerHTML = '<span class="text-success"><i class="fas fa-check-circle"></i> VNC server is running</span>';
+                            startBtn.style.display = 'none';
+                            stopBtn.style.display = 'block';
+                        } else {
+                            statusDiv.innerHTML = '<span class="text-danger"><i class="fas fa-times-circle"></i> VNC server is not running</span>';
+                            startBtn.style.display = 'block';
+                            stopBtn.style.display = 'none';
+                        }
+                    } else {
+                        statusDiv.innerHTML = '<span class="text-warning"><i class="fas fa-exclamation-triangle"></i> Error checking status</span>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking VNC status:', error);
+                    document.getElementById('vncTabStatus').innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Error checking status</span>';
+                });
+        }
+
+        function startVNCTab() {
+            showAlert('Starting VNC server...', 'info');
+            fetch('/api/vnc/start', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('VNC server started successfully', 'success');
+                    setTimeout(() => {
+                        checkVNCStatusTab();
+                        loadVNCInfo(); // Refresh VNC connection info
+                    }, 2000);
+                } else {
+                    showAlert('Error starting VNC server: ' + data.error, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error starting VNC server', 'danger');
+            });
+        }
+
+        function stopVNCTab() {
+            showAlert('Stopping VNC server...', 'info');
+            fetch('/api/vnc/stop', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('VNC server stopped successfully', 'success');
+                    setTimeout(() => {
+                        checkVNCStatusTab();
+                    }, 2000);
+                } else {
+                    showAlert('Error stopping VNC server: ' + data.error, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error stopping VNC server', 'danger');
+            });
+        }
+
+        function cleanupVNCTab() {
+            if (!confirm('This will stop all VNC processes and clean up all VNC data. Are you sure?')) {
+                return;
+            }
+            
+            showAlert('Stopping and cleaning up all VNC processes...', 'info');
+            fetch('/api/vnc/cleanup', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('VNC cleanup completed: ' + data.message, 'success');
+                    setTimeout(() => {
+                        checkVNCStatusTab();
+                    }, 2000);
+                } else {
+                    showAlert('Error cleaning up VNC: ' + data.error, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error cleaning up VNC processes', 'danger');
+            });
+        }
+
+        // Profile Management Functions
+        function checkProfileStatus(profileName) {
+            fetch(`/api/profiles/${profileName}/status`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert(`Profile '${profileName}' status: ${data.status}`, 'info');
+                    } else {
+                        showAlert('Error checking profile status: ' + data.error, 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('Error checking profile status', 'danger');
+                });
+        }
+
+        function reattachProfile(profileName) {
+            showAlert(`Reattaching profile '${profileName}' to VNC...`, 'info');
+            fetch(`/api/profiles/${profileName}/reattach`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(`Profile '${profileName}' reattached successfully`, 'success');
+                } else {
+                    showAlert('Error reattaching profile: ' + data.error, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error reattaching profile', 'danger');
+            });
+        }
+
+        function stopProfile(profileName) {
+            if (!confirm(`Are you sure you want to stop profile "${profileName}"?`)) {
+                return;
+            }
+            
+            showAlert(`Stopping profile '${profileName}'...`, 'info');
+            fetch(`/api/profiles/${profileName}/stop`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(`Profile '${profileName}' stopped successfully`, 'success');
+                } else {
+                    showAlert('Error stopping profile: ' + data.error, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error stopping profile', 'danger');
+            });
+        }
+
+        // VNC Settings
+        function loadVNCSettings() {
+            fetch('/api/config/vnc')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const config = data.config;
+                        document.getElementById('useGuiChrome').checked = config.use_gui_chrome;
+                        document.getElementById('vncDisplay').value = config.vnc_display;
+                        document.getElementById('chromeProfileDir').value = config.chrome_profile_dir;
+                        document.getElementById('chromedriverPath').value = config.chromedriver_path;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading VNC settings:', error);
+                });
+        }
+
+        function saveVNCSettings() {
+            const settings = {
+                use_gui_chrome: document.getElementById('useGuiChrome').checked,
+                vnc_display: document.getElementById('vncDisplay').value,
+                chrome_profile_dir: document.getElementById('chromeProfileDir').value,
+                chromedriver_path: document.getElementById('chromedriverPath').value
+            };
+
+            fetch('/api/config/vnc', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(settings)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('VNC settings saved successfully', 'success');
+                } else {
+                    showAlert('Error saving VNC settings: ' + data.error, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error saving VNC settings', 'danger');
+            });
+        }
+
+        // System Information
+        function loadSystemInfo() {
+            // Load OS info
+            fetch('/api/system/info')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('osInfo').textContent = data.os_info;
+                        document.getElementById('pythonVersion').textContent = data.python_version;
+                        document.getElementById('chromeVersion').textContent = data.chrome_version || 'Not installed';
+                        document.getElementById('chromedriverVersion').textContent = data.chromedriver_version || 'Not installed';
+                        document.getElementById('vncStatusInfo').textContent = data.vnc_status || 'Unknown';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading system info:', error);
+                    document.getElementById('osInfo').textContent = 'Error loading';
+                    document.getElementById('pythonVersion').textContent = 'Error loading';
+                    document.getElementById('chromeVersion').textContent = 'Error loading';
+                    document.getElementById('chromedriverVersion').textContent = 'Error loading';
+                    document.getElementById('vncStatusInfo').textContent = 'Error loading';
+                });
+        }
+
+        function refreshSystemInfo() {
+            loadSystemInfo();
+            showAlert('System information refreshed', 'info');
+        }
+
+        // Start scraping
+        function startScraping() {
+            const profileName = document.getElementById('scrapeProfile').value;
+            const tweetLinks = document.getElementById('tweetLinks').value.split('\n').filter(link => link.trim());
+            const maxRetries = parseInt(document.getElementById('scrapingRetries').value);
+
+            if (!profileName) {
+                showAlert('Please select a profile', 'warning');
+                return;
+            }
+
+            if (tweetLinks.length === 0) {
+                showAlert('Please enter tweet links', 'warning');
+                return;
+            }
+
+            fetch('/api/scrape', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    profile_name: profileName,
+                    tweet_links: tweetLinks,
+                    max_retries: maxRetries
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentScrapingTask = data.task_id;
+                    showScrapingProgress();
+                    showAlert('Scraping started successfully', 'success');
+                    socket.emit('join_task', { task_id: data.task_id });
+                    startTaskMonitoring(data.task_id, 'scraping');
+                    // Show stop button, hide start button
+                    document.getElementById('startScrapingBtn').style.display = 'none';
+                    document.getElementById('stopScrapingBtn').style.display = 'inline-block';
+                } else {
+                    showAlert('Error starting scraping: ' + data.error, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error starting scraping', 'danger');
+            });
+        }
+
+        // Stop scraping
+        function stopScraping() {
+            if (!currentScrapingTask) {
+                showAlert('No active scraping task to stop.', 'warning');
+                return;
+            }
+
+            if (!confirm('Are you sure you want to stop the current scraping task?')) {
+                return;
+            }
+
+            showAlert('Stopping scraping task...', 'info');
+            fetch(`/api/tasks/${currentScrapingTask}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Scraping task stopped successfully', 'success');
+                    currentScrapingTask = null;
+                    document.getElementById('startScrapingBtn').style.display = 'inline-block';
+                    document.getElementById('stopScrapingBtn').style.display = 'none';
+                    refreshTasks(); // Refresh tasks to show updated status
+                } else {
+                    showAlert('Error stopping scraping task: ' + data.error, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error stopping scraping task', 'danger');
+            });
+        }
+
+        // Start automation
+        function startAutomation() {
+            const profileName = document.getElementById('automationProfile').value;
+            const tweetLinks = document.getElementById('automationTweetLinks').value.split('\n').filter(link => link.trim());
+            const replyComments = document.getElementById('replyComments').value.split('\n').filter(comment => comment.trim());
+            const actions = {
+                like: document.getElementById('actionLike').checked,
+                retweet: document.getElementById('actionRetweet').checked,
+                reply: document.getElementById('actionReply').checked
+            };
+            const minWait = parseInt(document.getElementById('minWait').value);
+            const maxWait = parseInt(document.getElementById('maxWait').value);
+            const maxRetries = parseInt(document.getElementById('automationRetries').value);
+
+            if (!profileName) {
+                showAlert('Please select a profile', 'warning');
+                return;
+            }
+
+            if (tweetLinks.length === 0) {
+                showAlert('Please enter tweet links', 'warning');
+                return;
+            }
+
+            if (!actions.like && !actions.retweet && !actions.reply) {
+                showAlert('Please select at least one action', 'warning');
+                return;
+            }
+
+            fetch('/api/automate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    profile_name: profileName,
+                    tweet_links: tweetLinks,
+                    reply_comments: replyComments,
+                    actions: actions,
+                    min_wait: minWait,
+                    max_wait: maxWait,
+                    max_retries: maxRetries
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentAutomationTask = data.task_id;
+                    showAutomationProgress();
+                    showAlert('Automation started successfully', 'success');
+                    socket.emit('join_task', { task_id: data.task_id });
+                    startTaskMonitoring(data.task_id, 'automation');
+                    // Show stop button, hide start button
+                    document.getElementById('startAutomationBtn').style.display = 'none';
+                    document.getElementById('stopAutomationBtn').style.display = 'inline-block';
+                } else {
+                    showAlert('Error starting automation: ' + data.error, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error starting automation', 'danger');
+            });
+        }
+
+        // Stop automation
+        function stopAutomation() {
+            if (!currentAutomationTask) {
+                showAlert('No active automation task to stop.', 'warning');
+                return;
+            }
+
+            if (!confirm('Are you sure you want to stop the current automation task?')) {
+                return;
+            }
+
+            showAlert('Stopping automation task...', 'info');
+            fetch(`/api/tasks/${currentAutomationTask}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Automation task stopped successfully', 'success');
+                    currentAutomationTask = null;
+                    document.getElementById('startAutomationBtn').style.display = 'inline-block';
+                    document.getElementById('stopAutomationBtn').style.display = 'none';
+                    refreshTasks(); // Refresh tasks to show updated status
+                } else {
+                    showAlert('Error stopping automation task: ' + data.error, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error stopping automation task', 'danger');
+            });
+        }
+
+        // Task monitoring
+        function startTaskMonitoring(taskId, type) {
+            const interval = setInterval(() => {
+                fetch(`/api/tasks/${taskId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            updateTaskProgress(data.task, type);
+                            if (data.task.status === 'completed' || data.task.status === 'error' || data.task.status === 'cancelled') {
+                                clearInterval(interval);
+                                if (type === 'scraping') {
+                                    loadScrapedTweets();
+                                    currentScrapingTask = null;
+                                    document.getElementById('startScrapingBtn').style.display = 'inline-block';
+                                    document.getElementById('stopScrapingBtn').style.display = 'none';
+                                } else if (type === 'automation') {
+                                    currentAutomationTask = null;
+                                    document.getElementById('startAutomationBtn').style.display = 'inline-block';
+                                    document.getElementById('stopAutomationBtn').style.display = 'none';
+                                }
+                                refreshTasks();
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error monitoring task:', error);
+                        clearInterval(interval);
+                    });
+            }, 1000);
+        }
+
+        function updateTaskProgress(task, type) {
+            if (type === 'scraping') {
+                document.getElementById('scrapingProgressBar').style.width = task.progress + '%';
+                document.getElementById('scrapingProgressBar').textContent = task.progress + '%';
+                document.getElementById('scrapingStatus').textContent = `Processing ${task.current}/${task.total}`;
+                
+                const logContainer = document.getElementById('scrapingLog');
+                logContainer.innerHTML = task.logs.map(log => `<div>${log}</div>`).join('');
+                logContainer.scrollTop = logContainer.scrollHeight;
+            } else if (type === 'automation') {
+                document.getElementById('automationProgressBar').style.width = task.progress + '%';
+                document.getElementById('automationProgressBar').textContent = task.progress + '%';
+                document.getElementById('automationStatus').textContent = `Processing ${task.current}/${task.total}`;
+                
+                const logContainer = document.getElementById('automationLog');
+                logContainer.innerHTML = task.logs.map(log => `<div>${log}</div>`).join('');
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+        }
+
+        function showScrapingProgress() {
+            document.getElementById('scrapingProgress').style.display = 'block';
+            document.getElementById('scrapingLog').style.display = 'block';
+        }
+
+        function showAutomationProgress() {
+            document.getElementById('automationProgress').style.display = 'block';
+            document.getElementById('automationLog').style.display = 'block';
+        }
+
+        // Load scraped tweets
+        function loadScrapedTweets() {
+            fetch('/api/files/scraped_tweets')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('scrapedTweetsContent').innerHTML = 
+                            `<pre style="max-height: 300px; overflow-y: auto;">${data.content}</pre>`;
+                    } else {
+                        document.getElementById('scrapedTweetsContent').innerHTML = 
+                            '<div class="text-muted">No scraped tweets found</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('scrapedTweetsContent').innerHTML = 
+                        '<div class="text-danger">Error loading content</div>';
+                });
+        }
+
+        // Download file
+        function downloadFile(filename) {
+            window.open(`/api/files/download/${filename}`, '_blank');
+        }
+
+        // Refresh tasks
+        function refreshTasks() {
+            fetch('/api/tasks')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateTasksList(data.tasks);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        function updateTasksList(tasks) {
+            const container = document.getElementById('tasksList');
+            if (tasks.length === 0) {
+                container.innerHTML = '<div class="text-center text-muted">No active tasks</div>';
+                return;
+            }
+
+            container.innerHTML = tasks.map(task => `
+                <div class="task-card card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title">
+                                    <span class="status-indicator status-${task.status}"></span>
+                                    ${task.type} Task
+                                </h6>
+                                <p class="card-text text-muted">
+                                    Started: ${new Date(task.start_time).toLocaleString()}
+                                </p>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-outline-danger" onclick="cancelTask('${task.id}')">
+                                    <i class="fas fa-stop"></i> Cancel
+                                </button>
+                            </div>
+                        </div>
+                        <div class="progress mb-2">
+                            <div class="progress-bar" role="progressbar" style="width: ${task.progress}%">${task.progress}%</div>
+                        </div>
+                        <small class="text-muted">${task.current}/${task.total}</small>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function cancelTask(taskId) {
+            if (!confirm('Are you sure you want to cancel this task?')) {
+                return;
+            }
+
+            fetch(`/api/tasks/${taskId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Task cancelled successfully', 'success');
+                    refreshTasks();
+                } else {
+                    showAlert('Error cancelling task: ' + data.error, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error cancelling task', 'danger');
+            });
+        }
+
+        // Load existing tasks on page load
+        function loadExistingTasks() {
+            fetch('/api/tasks')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        data.tasks.forEach(task => {
+                            if (task.status === 'running') {
+                                console.log(`Found running task: ${task.id} (${task.type})`);
+                                
+                                // Resume monitoring for running tasks
+                                if (task.type === 'scraping') {
+                                    currentScrapingTask = task.id;
+                                    document.getElementById('startScrapingBtn').style.display = 'none';
+                                    document.getElementById('stopScrapingBtn').style.display = 'inline-block';
+                                    showScrapingProgress();
+                                    startTaskMonitoring(task.id, 'scraping');
+                                } else if (task.type === 'automation') {
+                                    currentAutomationTask = task.id;
+                                    document.getElementById('startAutomationBtn').style.display = 'none';
+                                    document.getElementById('stopAutomationBtn').style.display = 'inline-block';
+                                    showAutomationProgress();
+                                    startTaskMonitoring(task.id, 'automation');
+                                }
+                            }
+                        });
+                        
+                        // Update tasks list
+                        refreshTasks();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading existing tasks:', error);
+                });
+        }
+
+        // Load system status
+        function loadSystemStatus() {
+            fetch('/api/system/status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const system = data.system;
+                        document.getElementById('cpu-progress').style.width = system.cpu_percent + '%';
+                        document.getElementById('cpu-progress').textContent = system.cpu_percent + '%';
+                        document.getElementById('memory-progress').style.width = system.memory_percent + '%';
+                        document.getElementById('memory-progress').textContent = system.memory_percent + '%';
+                        document.getElementById('disk-progress').style.width = system.disk_percent + '%';
+                        document.getElementById('disk-progress').textContent = system.disk_percent + '%';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading system status:', error);
+                });
+        }
+
+        // Sample data functions
+        function loadSampleLinks() {
+            document.getElementById('tweetLinks').value = 
+                'https://twitter.com/example/status/123456789\nhttps://twitter.com/example/status/987654321';
+        }
+
+        function loadSampleAutomation() {
+            document.getElementById('automationTweetLinks').value = 
+                'https://twitter.com/example/status/123456789\nhttps://twitter.com/example/status/987654321';
+            document.getElementById('replyComments').value = 
+                'Great post!\nThanks for sharing!';
+        }
+
+        // Link Extraction Tool
+        function extractLinks() {
+            const textInput = document.getElementById('linkInput').value;
+            const extractedLinksContainer = document.getElementById('extractedLinks');
+            extractedLinksContainer.innerHTML = '<div class="list-group-item"><i class="fas fa-spinner fa-spin"></i> Extracting links...</div>';
+
+            fetch('/api/tools/extract-links', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ input_text: textInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    extractedLinksContainer.innerHTML = data.links.map(link => `
+                        <a href="${link}" target="_blank" class="list-group-item list-group-item-action">
+                            <i class="fas fa-link"></i> ${link}
+                        </a>
+                    `).join('');
+                } else {
+                    showAlert('Error extracting links: ' + data.error, 'danger');
+                    extractedLinksContainer.innerHTML = `<div class="list-group-item text-danger">Error extracting links: ${data.error}</div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error extracting links: ' + error.message, 'danger');
+                extractedLinksContainer.innerHTML = `<div class="list-group-item text-danger">Error extracting links: ${error.message}</div>`;
+            });
+        }
+
+        function loadExtractedLinks() {
+            const extractedLinksContainer = document.getElementById('extractedLinks');
+            extractedLinksContainer.innerHTML = '<div class="list-group-item"><i class="fas fa-spinner fa-spin"></i> Loading links...</div>';
+
+            fetch('/api/files/strippedlinks')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const links = data.content.split('\n').filter(link => link.trim());
+                        if (links.length > 0) {
+                            extractedLinksContainer.innerHTML = links.map(link => `
+                                <a href="${link}" target="_blank" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-link"></i> ${link}
+                                </a>
+                            `).join('');
+                        } else {
+                            extractedLinksContainer.innerHTML = '<div class="list-group-item text-muted">No extracted links found</div>';
+                        }
+                    } else {
+                        extractedLinksContainer.innerHTML = '<div class="list-group-item text-muted">No extracted links file found</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading extracted links:', error);
+                    extractedLinksContainer.innerHTML = '<div class="list-group-item text-muted">No extracted links file found</div>';
+                });
+        }
+
+        // Utility functions
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.container-fluid').insertBefore(alertDiv, document.querySelector('.row'));
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Update system status every 30 seconds
+        setInterval(loadSystemStatus, 30000);
+    </script>
+</body>
+</html>
