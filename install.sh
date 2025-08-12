@@ -10,12 +10,7 @@ echo "=================================================="
 echo "This script will install all components needed for the Twitter automation system"
 echo ""
 
-# Check if running as root
-if [ "$EUID" -eq 0 ]; then
-    echo "❌ Please don't run this script as root"
-    echo "   Run as a regular user with sudo privileges"
-    exit 1
-fi
+
 
 # Detect Linux distribution
 if [ -f /etc/os-release ]; then
