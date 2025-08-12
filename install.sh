@@ -169,7 +169,7 @@ install_python_deps() {
     # Install requirements
     if [ -f "requirements.txt" ]; then
         echo "📦 Installing requirements from requirements.txt..."
-        pip install -r requirements.txt
+        pip install -r requirements.txt --break-system-packages
     else
         echo "📦 Installing core dependencies..."
         pip install selenium webdriver-manager flask flask-socketio requests beautifulsoup4 lxml psutil
@@ -251,7 +251,7 @@ After=network.target
 Type=forking
 User=$USER
 WorkingDirectory=/home/$USER
-ExecStart=/usr/bin/vncserver :1 -geometry 1920x1080 -depth 24 -localhost no
+ExecStart=/usr/bin/vncserver :1 -geometry 1920x1080 -depth 24
 ExecStop=/usr/bin/vncserver -kill :1
 Restart=on-failure
 
