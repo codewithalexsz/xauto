@@ -191,6 +191,14 @@ which chromedriver
 chromedriver --version
 ```
 
+** FIX VNC FONT ERROR **
+```bash
+sudo apt update
+sudo apt install -y xfonts-base xfonts-75dpi xfonts-100dpi
+vncserver -kill :1
+vncserver :1 -geometry 1920x1080 -depth 24
+```
+
 **4. "Display not found" error**
 ```bash
 # Make sure VNC server is running
@@ -411,4 +419,5 @@ curl http://localhost:5000/api/system/status
 # Check if port is open
 netstat -tulpn | grep :5000
 ```
+
 
