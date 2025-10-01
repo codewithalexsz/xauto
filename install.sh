@@ -83,30 +83,35 @@ install_chrome() {
 }
 
 # Function to install ChromeDriver
+
 install_chromedriver() {
     echo "🔧 Installing ChromeDriver..."
-    
-    if command_exists chromedriver; then
+
+    if command -v chromedriver &> /dev/null; then
         echo "✅ ChromeDriver already installed"
         return
     fi
-    
-    # Get Chrome version
-    CHROME_VERSION=$(google-chrome --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+
+    # Get Chrome full version (e.g., 140.0.7339.207)
+    CHROME_VERSION=$(google-chrome --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -1)
     echo "📋 Chrome version: $CHROME_VERSION"
-    
-    # Download ChromeDriver
-    CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
-    echo "📋 ChromeDriver version: $CHROMEDRIVER_VERSION"
-    
+
+    # Set platform
+    PLATFORM="linux64"
+
+    # Build download URL
+    CHROMEDRIVER_URL="https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/${PLATFORM}/chromedriver-${PLATFORM}.zip"
+    echo "📥 Downloading from: $CHROMEDRIVER_URL"
+
     # Download and install
-    wget -O /tmp/chromedriver.zip "https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip"
-    unzip /tmp/chromedriver.zip -d /tmp/
-    sudo mv /tmp/chromedriver /usr/local/bin/
+    sudo wget -q -O /tmp/chromedriver.zip "$CHROMEDRIVER_URL"
+    sudo unzip -o /tmp/chromedriver.zip -d /tmp/
+    sudo mv /tmp/chromedriver-${PLATFORM}/chromedriver /usr/local/bin/
     sudo chmod +x /usr/local/bin/chromedriver
-    
+
     echo "✅ ChromeDriver installed successfully"
 }
+
 
 # Function to install VNC server
 install_vnc() {
@@ -294,7 +299,7 @@ show_final_instructions() {
     echo ""
     echo "📋 Next steps:"
     echo "1. Start VNC server:"
-    echo "   vncserver :1 -geometry 1920x1080 -depth 24 -localhost no"
+    echo "   vncserver :1 -geometry 1920x1080 -depth 24 "
     echo ""
     echo "2. Start the dashboard:"
     echo "   ./run_dashboard.sh"
@@ -303,7 +308,7 @@ show_final_instructions() {
     echo "   http://localhost:5000"
     echo ""
     echo "4. Connect to VNC (optional):"
-    echo "   Use a VNC viewer to connect to localhost:5901"
+    echo "   Use a VNC viewer to connect to MCHINE_IP:5901"
     echo ""
     echo "📁 Important directories:"
     echo "   • Chrome profiles: ./chrome-data/"
